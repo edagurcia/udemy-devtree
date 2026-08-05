@@ -12,6 +12,6 @@ app.use(express.json());
 
 //* Routing */
 
-app.use("/api", routes);
+app.use("/api/v1", routes);
 
 export default app;
