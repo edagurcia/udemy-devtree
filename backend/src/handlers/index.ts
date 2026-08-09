@@ -1,16 +1,10 @@
 import type { Request, Response } from "express";
-import { validationResult } from "express-validator";
 import slug from "slug";
-import { hashPassword } from "../utils/auth";
+import { checkPassword, hashPassword } from "../utils/auth";
 import User from "../models/User";
+import { generateJWT } from "../utils/jwt";
 
 export const registerUser = async (req: Request, res: Response) => {
-  let errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
   const { email, password } = req.body;
 
   const userExist = await User.findOne({ email });
@@ -40,4 +34,30 @@ export const registerUser = async (req: Request, res: Response) => {
   res
     .status(201)
     .json({ success: true, msg: "Usuario registrado correctamente" });
+};
+
+export const login = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    const error = new Error("El usuario no existe");
+
+    return res.status(404).json({ error: error.message });
+  }
+
+  const isPasswordCorrect = await checkPassword(password, user.password);
+
+  if (!isPasswordCorrect) {
+    const error = new Error("Contraseña incorrecta");
+
+    return res.status(404).json({ error: error.message });
+  }
+
+  res.status(200).json({
+    success: true,
+    msg: "Autenticado...",
+    jwt: generateJWT({ id: user._id }),
+  });
 };

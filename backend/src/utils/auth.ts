@@ -5,3 +5,10 @@ export const hashPassword = async (password: string) => {
 
   return await bcrypt.hash(password, salt);
 };
+
+export const checkPassword = async (
+  formPassword: string,
+  userPassword: string,
+) => {
+  return await bcrypt.compare(formPassword, userPassword);
+};

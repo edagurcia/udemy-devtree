@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { body } from "express-validator";
-import { registerUser } from "./handlers";
+import { handleInputErrors } from "./middleware/validation";
+import { login, registerUser } from "./handlers";
 
 const router = Router();
 
@@ -14,7 +15,16 @@ router.post(
   body("password")
     .isLength({ min: 8 })
     .withMessage("La contraseña debe ser mínimo de 8 caracteres"),
+  handleInputErrors,
   registerUser,
+);
+
+router.post(
+  "/auth/login",
+  body("email").isEmail().withMessage("Correo no valido"),
+  body("password").notEmpty().withMessage("La contraseña es obligatoria"),
+  handleInputErrors,
+  login,
 );
 
 export default router;
