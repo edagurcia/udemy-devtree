@@ -61,3 +61,7 @@ export const login = async (req: Request, res: Response) => {
     jwt: generateJWT({ id: user._id }),
   });
 };
+
+export const getUserProfile = async (req: Request, res: Response) => {
+  res.json(req.user);
+};
