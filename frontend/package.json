@@ -12,7 +12,11 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-query-devtools": "^5.101.4",
     "axios": "^1.19.0",
+    "i": "^0.3.7",
+    "npm": "^11.19.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.84.0",

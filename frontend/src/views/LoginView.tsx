@@ -29,9 +29,9 @@ export const LoginView = () => {
 
       toast.success(data.msg);
 
-      sessionStorage.setItem("AUTH_TOKEN", data.jwt);
+      localStorage.setItem("AUTH_TOKEN", data.jwt);
     } catch (error) {
-      sessionStorage.removeItem("AUTH_TOKEN");
+      localStorage.removeItem("AUTH_TOKEN");
 
       if (isAxiosError(error) && error.response) {
         toast.error(error.response?.data.error);
