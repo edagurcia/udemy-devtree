@@ -1,6 +1,47 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { ErrorMessage } from "../components/ErrorMessage";
+import type { ProfileData, UserType } from "../types";
+import { updateUser } from "../api/DevTreeAPI";
+
 export const ProfileView = () => {
+  const queryClient = useQueryClient();
+  const data: UserType = queryClient.getQueryData(["user"])!;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ProfileData>({
+    defaultValues: {
+      handle: data.handle,
+      description: data.description,
+    },
+  });
+
+  const updateProfileMutation = useMutation({
+    mutationFn: updateUser,
+    onError: (err) => {
+      toast.error(err.message);
+    },
+    onSuccess: (res) => {
+      toast.success(res);
+      queryClient.invalidateQueries({
+        queryKey: ["user"],
+      });
+    },
+  });
+
+  const handleUserProfileForm = (formData: ProfileData) => {
+    updateProfileMutation.mutate(formData);
+  };
+
   return (
-    <form className="bg-white p-10 rounded-lg space-y-5" onSubmit={() => {}}>
+    <form
+      className="bg-white p-10 rounded-lg space-y-5"
+      onSubmit={handleSubmit(handleUserProfileForm)}
+    >
       <legend className="text-2xl text-slate-800 text-center">
         Editar Información
       </legend>
@@ -10,7 +51,12 @@ export const ProfileView = () => {
           type="text"
           className="border-0 bg-slate-100 rounded-lg p-2"
           placeholder="handle o Nombre de Usuario"
+          {...register("handle", {
+            required: "El nombre de usuario es obligatorio",
+          })}
         />
+
+        {errors.handle && <ErrorMessage>{errors.handle.message}</ErrorMessage>}
       </div>
 
       <div className="grid grid-cols-1 gap-2">
@@ -18,6 +64,7 @@ export const ProfileView = () => {
         <textarea
           className="border-0 bg-slate-100 rounded-lg p-2"
           placeholder="Tu Descripción"
+          {...register("description")}
         />
       </div>
 
@@ -37,6 +84,7 @@ export const ProfileView = () => {
         type="submit"
         className="bg-cyan-400 p-2 text-lg w-full uppercase text-slate-600 rounded-lg font-bold cursor-pointer"
         value="Guardar Cambios"
+        disabled={updateProfileMutation.isPending}
       />
     </form>
   );

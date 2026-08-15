@@ -14,12 +14,7 @@ const AuthLayout = () => {
         </div>
       </div>
 
-      <Toaster
-        position="top-left"
-        expand={true}
-        richColors={true}
-        closeButton={true}
-      />
+      <Toaster position="top-right" expand={true} richColors={true} />
     </>
   );
 };

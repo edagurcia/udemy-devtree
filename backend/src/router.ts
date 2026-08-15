@@ -1,7 +1,12 @@
 import { Router } from "express";
 import { body } from "express-validator";
 import { handleInputErrors } from "./middleware/validation";
-import { login, registerUser, getUserProfile } from "./handlers";
+import {
+  login,
+  registerUser,
+  getUserProfile,
+  updateUserProfile,
+} from "./handlers";
 import { authenticate } from "./middleware/auth";
 
 const router = Router();
@@ -29,5 +34,12 @@ router.post(
 );
 
 router.get("/auth/me", authenticate, getUserProfile);
+
+router.patch(
+  "/auth/me",
+  body("handle").notEmpty().withMessage("El handle es obligatorio"),
+  authenticate,
+  updateUserProfile,
+);
 
 export default router;

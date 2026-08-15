@@ -1,13 +1,14 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-export type TUser = {
+export type TUser = Document & {
   handle: string;
   name: string;
   email: string;
   password: string;
+  description: string;
 };
 
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema({
   handle: {
     type: String,
     required: true,
@@ -31,6 +32,11 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true,
     required: true,
+  },
+  description: {
+    type: String,
+    trim: true,
+    default: "",
   },
 });
 

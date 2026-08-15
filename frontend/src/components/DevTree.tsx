@@ -47,7 +47,7 @@ export const DevTree = ({ data }: Props) => {
           </div>
         </main>
       </div>
-      <Toaster position="top-right" />
+      <Toaster position="top-right" expand={true} richColors={true} />
     </>
   );
 };

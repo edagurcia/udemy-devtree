@@ -3,6 +3,7 @@ export type UserType = {
   name: string;
   email: string;
   _id: string;
+  description: string;
 };
 
 export type RegisterData = Pick<UserType, "handle" | "email" | "name"> & {
@@ -11,3 +12,5 @@ export type RegisterData = Pick<UserType, "handle" | "email" | "name"> & {
 };
 
 export type LoginData = Pick<RegisterData, "email" | "password">;
+
+export type ProfileData = Pick<UserType, "handle" | "description">;

@@ -11,7 +11,7 @@ connectDB();
 
 //* CORS */
 
-app.use(cors(corsConfig));
+app.use(cors());
 
 // leer datos de formularios JSON
 app.use(express.json());
