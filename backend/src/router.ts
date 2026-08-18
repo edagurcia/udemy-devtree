@@ -6,6 +6,7 @@ import {
   registerUser,
   getUserProfile,
   updateUserProfile,
+  uploadAvatarImage,
 } from "./handlers";
 import { authenticate } from "./middleware/auth";
 
@@ -41,5 +42,7 @@ router.patch(
   authenticate,
   updateUserProfile,
 );
+
+router.post("/auth/avatar", authenticate, uploadAvatarImage);
 
 export default router;

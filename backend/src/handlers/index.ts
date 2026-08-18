@@ -3,6 +3,10 @@ import slug from "slug";
 import { checkPassword, hashPassword } from "../utils/auth";
 import User from "../models/User";
 import { generateJWT } from "../utils/jwt";
+//* Cloudinary para subida de archivos desde backend */
+import formidable from "formidable";
+import cloudinary from "../config/cloudinary";
+import { v4 as uuid } from "uuid";
 
 export const registerUser = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -11,7 +15,6 @@ export const registerUser = async (req: Request, res: Response) => {
 
   if (userExist) {
     const error = new Error("Esta dirección de correo ya esta registrado");
-
     return res.status(409).json({ error: error.message });
   }
 
@@ -21,7 +24,6 @@ export const registerUser = async (req: Request, res: Response) => {
 
   if (handleExist) {
     const error = new Error("Nombre de usuario no disponible");
-
     return res.status(409).json({ error: error.message });
   }
 
@@ -38,12 +40,10 @@ export const registerUser = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-
   const user = await User.findOne({ email });
 
   if (!user) {
     const error = new Error("El usuario no existe");
-
     return res.status(404).json({ error: error.message });
   }
 
@@ -51,7 +51,6 @@ export const login = async (req: Request, res: Response) => {
 
   if (!isPasswordCorrect) {
     const error = new Error("Contraseña incorrecta");
-
     return res.status(404).json({ error: error.message });
   }
 
@@ -76,7 +75,6 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 
     if (handleExist && handleExist.email !== req.user.email) {
       const error = new Error("Nombre de usuario no disponible");
-
       return res.status(409).json({ error: error.message });
     }
 
@@ -88,7 +86,33 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     res.status(201).send("Perfil actualizado correctamente");
   } catch (e) {
     const error = new Error("Hubo un error");
+    return res.status(500).json({ error: error.message });
+  }
+};
 
+export const uploadAvatarImage = async (req: Request, res: Response) => {
+  try {
+    const form = formidable({ multiples: false });
+    form.parse(req, (error, fields, files) => {
+      cloudinary.uploader.upload(
+        files.file[0].filepath,
+        { public_id: uuid() },
+        async function (error, result) {
+          if (error) {
+            const error = new Error(
+              "Hubo un error al intentar subir la imagen",
+            );
+            return res.status(500).json({ error: error.message });
+          }
+
+          if (result) {
+            console.log(result.secure_url);
+          }
+        },
+      );
+    });
+  } catch (e) {
+    const error = new Error("Hubo un error");
     return res.status(500).json({ error: error.message });
   }
 };
