@@ -6,6 +6,7 @@ export type TUser = Document & {
   email: string;
   password: string;
   description: string;
+  image: string;
 };
 
 const userSchema = new Schema({
@@ -34,6 +35,11 @@ const userSchema = new Schema({
     required: true,
   },
   description: {
+    type: String,
+    trim: true,
+    default: "",
+  },
+  image: {
     type: String,
     trim: true,
     default: "",

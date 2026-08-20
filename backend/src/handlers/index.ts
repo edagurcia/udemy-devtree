@@ -93,26 +93,27 @@ export const updateUserProfile = async (req: Request, res: Response) => {
 export const uploadAvatarImage = async (req: Request, res: Response) => {
   try {
     const form = formidable({ multiples: false });
-    form.parse(req, (error, fields, files) => {
-      cloudinary.uploader.upload(
-        files.file[0].filepath,
-        { public_id: uuid() },
-        async function (error, result) {
-          if (error) {
-            const error = new Error(
-              "Hubo un error al intentar subir la imagen",
-            );
-            return res.status(500).json({ error: error.message });
-          }
+    const [, files] = await form.parse(req);
 
-          if (result) {
-            console.log(result.secure_url);
-          }
-        },
-      );
+    const fileArray = files.file;
+    if (!fileArray || fileArray.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "No se proporcionó ningún archivo en la clave 'file'" });
+    }
+
+    const result = await cloudinary.uploader.upload(fileArray[0].filepath, {
+      public_id: uuid(),
     });
-  } catch (e) {
-    const error = new Error("Hubo un error");
-    return res.status(500).json({ error: error.message });
+
+    req.user.image = result.secure_url;
+    await req.user.save();
+
+    return res.json({ image: result.secure_url });
+  } catch (error: any) {
+    console.error("Error en Cloudinary:", error);
+    return res.status(500).json({
+      error: error.message || "Hubo un error al procesar la imagen",
+    });
   }
 };

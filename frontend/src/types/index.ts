@@ -4,6 +4,7 @@ export type UserType = {
   email: string;
   _id: string;
   description: string;
+  image: string;
 };
 
 export type RegisterData = Pick<UserType, "handle" | "email" | "name"> & {
