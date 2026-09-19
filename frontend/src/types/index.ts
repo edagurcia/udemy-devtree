@@ -5,6 +5,7 @@ export type UserType = {
   _id: string;
   description: string;
   image: string;
+  links: string;
 };
 
 export type RegisterData = Pick<UserType, "handle" | "email" | "name"> & {
@@ -15,3 +16,12 @@ export type RegisterData = Pick<UserType, "handle" | "email" | "name"> & {
 export type LoginData = Pick<RegisterData, "email" | "password">;
 
 export type ProfileData = Pick<UserType, "handle" | "description">;
+
+export type SocialType = {
+  id: number;
+  name: string;
+  url: string;
+  enabled: boolean;
+};
+
+export type DevTreeLinkType = Pick<SocialType, "name" | "url" | "enabled">;

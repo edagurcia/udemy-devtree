@@ -1,13 +1,25 @@
+import { useEffect, useState } from "react";
 import { Link, Outlet } from "react-router-dom";
 import NavigationTabs from "../components/NavigationTabs";
 import { Toaster } from "sonner";
-import type { UserType } from "../types";
+import type { SocialType, UserType } from "../types";
+import { DevTreeLink } from "./DevTreeLink";
 
 type Props = {
   data: UserType;
 };
 
 export const DevTree = ({ data }: Props) => {
+  const [enabledLinks, setEnabledLinks] = useState<SocialType[]>(
+    JSON.parse(data.links).filter((item: SocialType) => item.enabled),
+  );
+
+  useEffect(() => {
+    setEnabledLinks(
+      JSON.parse(data.links).filter((item: SocialType) => item.enabled),
+    );
+  }, [data]);
+
   return (
     <>
       <header className="bg-slate-800 py-5">
@@ -57,6 +69,12 @@ export const DevTree = ({ data }: Props) => {
               <p className="text-lg font-black text-center text-white">
                 {data.description}
               </p>
+
+              <div className="mt-20 flex flex-col gap-5">
+                {enabledLinks.map((link) => (
+                  <DevTreeLink key={link.name} link={link} />
+                ))}
+              </div>
             </div>
           </div>
         </main>
