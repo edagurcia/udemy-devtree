@@ -49,14 +49,9 @@ export const LinkTreeView = () => {
     );
 
     setDevTreeLinks(updatedLinks);
-
-    queryClient.setQueryData(["user"], (prevData: UserType) => {
-      return {
-        ...prevData,
-        links: JSON.stringify(updatedLinks),
-      };
-    });
   };
+
+  const links: SocialType[] = JSON.parse(user.links);
 
   const handleEnableLink = (social: string) => {
     const updatedLinks = devTreeLinks.map((link) => {
@@ -74,10 +69,64 @@ export const LinkTreeView = () => {
 
     setDevTreeLinks(updatedLinks);
 
+    let updatedSocialItems: SocialType[] = [];
+
+    const selectedSocialNetwork = updatedLinks.find(
+      (link) => link.name === social,
+    );
+
+    if (selectedSocialNetwork?.enabled) {
+      // identificar si la red existe en el arreglo
+      const id = links.filter((link) => link.id).length + 1;
+
+      if (links.some((link) => link.name === social)) {
+        updatedSocialItems.map((link) => {
+          if (link.name === social) {
+            return {
+              ...link,
+              enabled: true,
+              id,
+            };
+          } else {
+            return link;
+          }
+        });
+      } else {
+        // adicionar ID sino existe para que drag n drop funcione
+        const newSocialItem = {
+          ...selectedSocialNetwork,
+          id,
+        };
+
+        updatedSocialItems = [...links, newSocialItem];
+      }
+    } else {
+      // deshabilitar la red social en el arreglo antes de almacenar sin repetir la ID
+      const indexToUpdate = links.findIndex((link) => link.name === social);
+
+      updatedSocialItems = links.map((link) => {
+        if (link.name === social) {
+          return {
+            ...link,
+            id: 0,
+            enabled: false,
+          };
+        } else if (link.id > indexToUpdate) {
+          return {
+            ...link,
+            id: link.id - 1,
+          };
+        } else {
+          return link;
+        }
+      });
+    }
+
+    // Logica que almacena en la base de datos
     queryClient.setQueryData(["user"], (prevData: UserType) => {
       return {
         ...prevData,
-        links: JSON.stringify(updatedLinks),
+        links: JSON.stringify(updatedSocialItems),
       };
     });
   };
