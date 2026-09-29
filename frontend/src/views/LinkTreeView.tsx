@@ -24,109 +24,125 @@ export const LinkTreeView = () => {
   });
 
   useEffect(() => {
-    const updatedData = devTreeLinks.map((item) => {
-      const userLink = JSON.parse(user.links).find(
-        (link: SocialType) => link.name === item.name,
-      );
+    const userLinks: SocialType[] = JSON.parse(user.links);
 
+    const updatedData = devTreeLinks.map((item) => {
+      const userLink = userLinks.find((link) => link.name === item.name);
       if (userLink) {
         return {
           ...item,
           url: userLink.url,
           enabled: userLink.enabled,
+          id: userLink.id,
         };
-      } else {
-        return item;
       }
+      return item;
     });
 
     setDevTreeLinks(updatedData);
-  }, []);
+  }, [user.links]);
 
   const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const updatedLinks = devTreeLinks.map((link) =>
-      link.name === e.target.name ? { ...link, url: e.target.value } : link,
+    const { name, value } = e.target;
+
+    // 1. Estado local de inputs
+    setDevTreeLinks((prev) =>
+      prev.map((link) => (link.name === name ? { ...link, url: value } : link)),
     );
 
-    setDevTreeLinks(updatedLinks);
+    // 2. Caché global usando la función de actualización atómica
+    queryClient.setQueryData(["user"], (prevUser: UserType) => {
+      if (!prevUser) return prevUser;
+
+      const currentLinks: SocialType[] = JSON.parse(prevUser.links);
+      const exists = currentLinks.some((link) => link.name === name);
+
+      let updatedLinks: SocialType[];
+
+      if (exists) {
+        updatedLinks = currentLinks.map((link) =>
+          link.name === name ? { ...link, url: value } : link,
+        );
+      } else {
+        updatedLinks = [
+          ...currentLinks,
+          {
+            name,
+            url: value,
+            enabled: false,
+            id: 0,
+          },
+        ];
+      }
+
+      return {
+        ...prevUser,
+        links: JSON.stringify(updatedLinks),
+      };
+    });
   };
 
-  const links: SocialType[] = JSON.parse(user.links);
+  const handleEnableLink = (socialName: string) => {
+    const selectedLink = devTreeLinks.find((link) => link.name === socialName);
 
-  const handleEnableLink = (social: string) => {
-    const updatedLinks = devTreeLinks.map((link) => {
-      if (link.name === social) {
-        if (isValidUrl(link.url)) {
-          return { ...link, enabled: !link.enabled };
-        } else {
-          toast.error("URL No valida");
-          return link;
-        }
-      } else {
-        return link;
-      }
-    });
-
-    setDevTreeLinks(updatedLinks);
-
-    let updatedSocialItems: SocialType[] = [];
-
-    const selectedSocialNetwork = updatedLinks.find(
-      (link) => link.name === social,
-    );
-
-    if (selectedSocialNetwork?.enabled) {
-      // identificar si la red existe en el arreglo
-      const id = links.filter((link) => link.id).length + 1;
-
-      if (links.some((link) => link.name === social)) {
-        updatedSocialItems.map((link) => {
-          if (link.name === social) {
-            return {
-              ...link,
-              enabled: true,
-              id,
-            };
-          } else {
-            return link;
-          }
-        });
-      } else {
-        // adicionar ID sino existe para que drag n drop funcione
-        const newSocialItem = {
-          ...selectedSocialNetwork,
-          id,
-        };
-
-        updatedSocialItems = [...links, newSocialItem];
-      }
-    } else {
-      // deshabilitar la red social en el arreglo antes de almacenar sin repetir la ID
-      const indexToUpdate = links.findIndex((link) => link.name === social);
-
-      updatedSocialItems = links.map((link) => {
-        if (link.name === social) {
-          return {
-            ...link,
-            id: 0,
-            enabled: false,
-          };
-        } else if (link.id > indexToUpdate) {
-          return {
-            ...link,
-            id: link.id - 1,
-          };
-        } else {
-          return link;
-        }
-      });
+    if (!selectedLink || !isValidUrl(selectedLink.url)) {
+      toast.error("URL No válida");
+      return;
     }
 
-    // Logica que almacena en la base de datos
-    queryClient.setQueryData(["user"], (prevData: UserType) => {
+    // 1. ACTUALIZAR ESTADO LOCAL (para que el switch cambie visualmente al instante)
+    setDevTreeLinks((prev) =>
+      prev.map((link) =>
+        link.name === socialName ? { ...link, enabled: !link.enabled } : link,
+      ),
+    );
+
+    // 2. TU LÓGICA ORIGINAL DE CACHÉ EN REACT QUERY
+    queryClient.setQueryData(["user"], (prevUser: UserType) => {
+      if (!prevUser) return prevUser;
+
+      const currentLinks: SocialType[] = JSON.parse(prevUser.links);
+      const linkIndex = currentLinks.findIndex(
+        (link) => link.name === socialName,
+      );
+
+      let updatedLinks: SocialType[] = [...currentLinks];
+
+      if (linkIndex !== -1) {
+        const target = updatedLinks[linkIndex];
+        const newEnabledState = !target.enabled;
+
+        if (newEnabledState) {
+          const enabledCount = updatedLinks.filter((l) => l.enabled).length;
+          updatedLinks[linkIndex] = {
+            ...target,
+            enabled: true,
+            id: enabledCount + 1,
+          };
+        } else {
+          const oldId = target.id;
+          updatedLinks[linkIndex] = {
+            ...target,
+            enabled: false,
+            id: 0,
+          };
+
+          updatedLinks = updatedLinks.map((l) =>
+            l.enabled && l.id > oldId ? { ...l, id: l.id - 1 } : l,
+          );
+        }
+      } else {
+        const enabledCount = updatedLinks.filter((l) => l.enabled).length;
+        updatedLinks.push({
+          ...selectedLink,
+          enabled: true,
+          id: enabledCount + 1,
+        });
+      }
+
       return {
-        ...prevData,
-        links: JSON.stringify(updatedSocialItems),
+        ...prevUser,
+        links: JSON.stringify(updatedLinks),
       };
     });
   };
@@ -145,7 +161,10 @@ export const LinkTreeView = () => {
 
         <button
           type="button"
-          onClick={() => mutate(user)}
+          onClick={() => {
+            const currentUser: UserType = queryClient.getQueryData(["user"])!;
+            mutate(currentUser);
+          }}
           className="bg-cyan-400 p-2 text-lg w-full uppercase text-slate-600 rounded-lg font-bold cursor-pointer"
         >
           Guardar cambios
