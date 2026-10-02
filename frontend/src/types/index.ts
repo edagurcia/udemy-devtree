@@ -25,3 +25,8 @@ export type SocialType = {
 };
 
 export type DevTreeLinkType = Pick<SocialType, "name" | "url" | "enabled">;
+
+export type HandleType = Pick<
+  UserType,
+  "description" | "handle" | "image" | "links" | "name"
+>;

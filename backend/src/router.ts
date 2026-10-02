@@ -7,6 +7,8 @@ import {
   getUserProfile,
   updateUserProfile,
   uploadAvatarImage,
+  getUserHandle,
+  searchUserHandle,
 } from "./handlers";
 import { authenticate } from "./middleware/auth";
 
@@ -44,5 +46,14 @@ router.patch(
 );
 
 router.post("/auth/avatar", authenticate, uploadAvatarImage);
+
+router.get("/:handle", getUserHandle);
+
+router.post(
+  "/search",
+  body("handle").notEmpty().withMessage("El handle es obligatorio"),
+  handleInputErrors,
+  searchUserHandle,
+);
 
 export default router;

@@ -118,3 +118,43 @@ export const uploadAvatarImage = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getUserHandle = async (req: Request, res: Response) => {
+  try {
+    const { handle } = req.params;
+
+    const user = await User.findOne({ handle }).select(
+      "-_id -__v -password -email",
+    );
+
+    if (!user) {
+      const error = new Error("El usuario no existe");
+      return res.status(404).json({ error: error.message });
+    }
+
+    return res.status(200).json(user);
+  } catch (e) {
+    const error = new Error("Hubo un error al buscar la ruta del usuario");
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+export const searchUserHandle = async (req: Request, res: Response) => {
+  try {
+    console.log(req.body.handle);
+
+    const { handle } = req.body;
+
+    const userExist = await User.findOne({ handle });
+
+    if (userExist) {
+      const error = new Error(`El usuario ${handle} ya esta tomado`);
+      return res.status(409).json({ error: error.message });
+    }
+
+    res.send(`El usuario ${handle} esta disponible`);
+  } catch (e) {
+    const error = new Error("Hubo un error al buscar la ruta del usuario");
+    return res.status(500).json({ error: error.message });
+  }
+};

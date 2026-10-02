@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { isAxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -7,10 +7,13 @@ import api from "../config/axios";
 import type { RegisterData } from "../types";
 
 export const RegisterView = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const initialValues: RegisterData = {
     name: "",
     email: "",
-    handle: "",
+    handle: location?.state?.handle || "",
     password: "",
     confirmPassword: "",
   };
@@ -34,6 +37,7 @@ export const RegisterView = () => {
       reset();
 
       toast.success(data.msg);
+      navigate("/auth/login");
     } catch (error) {
       if (isAxiosError(error) && error.response) {
         toast.error(error.response?.data.error);

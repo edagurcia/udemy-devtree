@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { isAxiosError } from "axios";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -7,6 +7,8 @@ import api from "../config/axios";
 import type { LoginData } from "../types";
 
 export const LoginView = () => {
+  const navigate = useNavigate();
+
   const initialValues: LoginData = {
     email: "",
     password: "",
@@ -30,6 +32,8 @@ export const LoginView = () => {
       toast.success(data.msg);
 
       localStorage.setItem("AUTH_TOKEN", data.jwt);
+
+      navigate("/admin");
     } catch (error) {
       localStorage.removeItem("AUTH_TOKEN");
 
